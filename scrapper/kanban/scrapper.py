@@ -2,7 +2,6 @@ import os
 import asyncio
 from playwright.async_api import async_playwright
 from dotenv import load_dotenv
-from sesion import auto_login
 
 load_dotenv()
 url = os.getenv('KANBAN_BOARD_URL')
@@ -71,6 +70,3 @@ async def get_my_tasks(user_id="206"):
         await browser.close()
         print(my_tasks)
         return my_tasks
-    
-asyncio.run(auto_login())
-asyncio.run((get_my_tasks()))
