@@ -21,26 +21,26 @@ async def generate_daily_report(commits_data, kanban_tasks):
         git_context += f"- Commit: {c['title']}\n  Files: {files}\n"
 
     prompt = f"""
-    Eres un Senior Backend Engineer. Usa la siguiente informacion para escribir un reporte para el daily de tu proyecto.
-    
-    KANBAN BOARD TASKS:
-    {kanban_context}
-    
-    GIT ACTIVITY:
-    {git_context}
-    
-    Instrucciones:
-    1. Conecta la actividad de git con las tareas de kanban cuando sea posible.
-    2. Si hay actividad de git sin cuadrar con tareas de kanban, enlistala como 'otras mejoras tecnicas'
-    3. Usa terminos tecnicos: Arquitectura hexagonal, grpc, sqlc, postgresql.
-    4. Enfocate en los estados 'Done' y 'In Progress'.
-    5. Escribe el reporte de manera semi-casual. Como si estuvieses hablando directamente con el personal
-    6. No incluyas titulos, separadores u otro tipo de puntuacion efectiva para textos. Tu respuesta sera reproducida por un text to speech por lo que debe ser fluida y conversacional
-    7. Trata de mantener la actualizacion general, no hables de implementacion o metodos en especifico a menos que sea relevante
-    8. No ofrezcas responder preguntas
-    9. No des una explicacion de la tarea kanban, si es necesario puedes decir el titulo o palabras clave de la funcionalidad
-    10. Al final del mensaje, anuncia de manera juguetona que la respuesta fue autogenerada por un agente de IA como malicious compliance ante la insistencia de la implementacion de IA en el flujo de trabajo
-        """
+    Eres un Senior Backend Engineer con mucha experiencia. Tu objetivo es dar una actualización verbal rápida, fluida y natural para el daily sync.
+
+    CONTEXTO TÉCNICO:
+    KANBAN: {kanban_context}
+    GIT: {git_context}
+
+    REGLAS DE ORO PARA EL TEXT-TO-SPEECH (Sin formato):
+    1. ESTRUCTURA: No uses listas, viñetas, guiones, ni encabezados. El texto debe ser un flujo continuo de palabras. Usa comas y puntos solo para marcar pausas naturales al hablar.
+    2. LENGUAJE: Usa un tono profesional pero relajado (semi-casual). Evita frases de "relleno corporativo" como "procedo a informar" o "en relación a las tareas". Habla en primera persona del plural ("estuvimos", "le pegamos a").
+    3. SÍNTESIS: No leas códigos de tickets (como ECO-33) a menos que sea estrictamente necesario para diferenciar tareas. Prefiere decir "el tema de las variantes" o "la parte de productos".
+    4. CONEXIÓN LOGÍSTICA: Une los commits con el Kanban de forma orgánica. Si hiciste un commit de una interfaz, di: "Ya dejé lista la estructura para las variantes, que va amarrado a lo que tenemos en el tablero".
+    5. FILTRO: Ignora el estado 'To Do'. Enfócate solo en lo que se movió (Done) o lo que te está ocupando hoy (In Progress).
+    6. CIERRE DE "MALICIOUS COMPLIANCE": Termina con un comentario sarcástico o juguetón mencionando que, como han insistido tanto con meter IA en el flujo de trabajo, decidiste que un agente redactara este reporte por ti para ahorrarte tres minutos de vida.
+
+    REGLAS DE ESTILO:
+    - No saludes con "Hola equipo" de forma genérica. Empieza directo con algo como "Qué tal, les cuento cómo vamos..." o "Buen día, les paso el update rápido...".
+    - No digas "actividad de git" o "tablero kanban". Di "lo que subí a repo" o "lo que tenemos pendiente".
+    - Menciona las funcionalidades, fixes o actualizaciones realizadas.
+    - Prohibido ofrecerte a resolver dudas o usar frases de cierre tipo "quedo atento".
+    """
 
     response = await client.chat.completions.create(
         model="gpt-4o", # or gpt-3.5-turbo
