@@ -15,11 +15,11 @@ PROJECT_ID = os.getenv("PROJECT_ID", "381")
 TOKEN = os.getenv("GITLAB_TOKEN")
 
 def get_past_date_iso(days_ago=1):
-    # Just a straight 24/48 hour lookback from 'now'
     target_date = datetime.now(timezone.utc) - timedelta(days=days_ago)
-    # GitLab needs the 'Z' or offset. .isoformat() is good, but let's be explicit
+    
+    target_date = target_date.replace(hour=17, minute=30, second=0, microsecond=0)
+    print(target_date)
     return target_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-    return target_date.isoformat()
 
 async def get_commits_since_last_daily(branch="dev", days_to_look_back=1):
 
@@ -41,13 +41,15 @@ async def get_commits_since_last_daily(branch="dev", days_to_look_back=1):
             response = await client.get(url, headers=headers, params=params)
             response.raise_for_status()
             raw_commits = response.json()
-            
+            print("===========RAW COMMITS===========")
+            print(raw_commits)
             filtered_commits = [
                 c for c in raw_commits 
-                if c.get("author_email") == "erick.labrada@mediaaerea.mx"
+                if c.get("author_email") == "erick.labrada@mediaaerea.mx" or c.get("author_name")=="Erick Labrada"
             ]
-        
-            print(f"✅ Found {len(filtered_commits)} commits by you.")
+            print("===========FILTERED COMMITS===========")
+            print(f"Found {len(filtered_commits)} commits by you.")
+            print(filtered_commits)
             return filtered_commits
 
         except httpx.HTTPStatusError as e:
@@ -87,7 +89,7 @@ async def get_commit_diff(commit_sha):
             return []
 
 async def main():
-    commits = await get_commits_since_last_daily("feat/ECOM-EMRQ05HU023")
+    commits = await get_commits_since_last_daily("feat/ECOM-EMRQ05HU023", days_to_look_back=1)
     
     for commit in commits:
 
