@@ -7,22 +7,22 @@ from llm.llm import generate_daily_report
 from tts.tts import text_to_speech
 
 
-async def get_data(branch ="dev", time=1):
+async def get_data(branches =["dev"], time=1):
     auto_login()
     print("Fetching Kanban tasks...")
     kanban_tasks = await get_my_tasks(user_id="206")
-
     print("Fetching Git activity...")
-    raw_commits = await get_commits_since_last_daily(branch, time)
+    raw_commits = await get_commits_since_last_daily(branches, time)
     
     processed_git_data = []
-    for c in raw_commits:
-        sha = c.get('id')
-        diffs = await get_commit_diff(sha)
-        processed_git_data.append({
-            "title": c.get('title'),
-            "files_touched": diffs
-        })
+    for commit in raw_commits:
+        for c in commit:
+            sha = c.get('id')
+            diffs = await get_commit_diff(sha)
+            processed_git_data.append({
+                "title": c.get('title'),
+                "files_touched": diffs
+            })
     return kanban_tasks, processed_git_data
 
 
@@ -43,19 +43,24 @@ async def generate_audio(report):
 
 async def main():
     extra_data = """
-    Las actividades que estaré haciendo son:
-    -Conectar los modulos ya terminados
-    -Implementar los valores de atributos variantes
-    -Empezar a trabajar en el modulo de racs
-
-    En ese orden
-
+    El backend de todos los modulos que se mencionan fueron terminados
     """
 
-    kanban_tasks, processed_git_data = await get_data("feat/ECOM-EMRQ05HU023", 4)
+    branches=[
+        "feat/back-variants",
+        "feat/back-products",
+        "feat/composite",
+        "feat/back-attributes",
+    ]
+
+    kanban_tasks, processed_git_data = await get_data(branches, 2)
     report = await generate_report(kanban_tasks,processed_git_data,extra_data)
-#    report = """Sin novedades por mi parte"""
-    audio = await generate_audio(report)
+
+    answer = input("Create speech?")
+
+    if answer == "y":
+        audio = await generate_audio(report)
 
 if __name__ == "__main__":
+
     asyncio.run(main())

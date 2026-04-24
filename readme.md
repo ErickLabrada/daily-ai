@@ -1,14 +1,16 @@
-# 1. Create the virtual speaker (sink)
+# 1. Create virtual sink
 
-pactl load-module module-null-sink sink_name=VirtualMic sink_properties=device.description=Virtual_Microphone_Sink
+pactl load-module module-null-sink \
+  sink_name=virtual_sink \
+  sink_properties=device.description=Virtual_Sink
 
-# 2. Create a "loopback" so the sink acts as a source (mic)
+# 2. Create virtual microphone (source from sink monitor)
 
-pactl load-module module-remap-source master=VirtualMic.monitor source_name=VirtualMic_Source source_properties=device.description=Virtual_Microphone
+pactl load-module module-remap-source \
+  master=virtual_sink.monitor \
+  source_name=virtual_mic \
+  source_properties=device.description=Virtual_Microphone
 
-# 3. Stream the MP3 to the Virtual Mic
+# 3. Send audio into the sink (IMPORTANT FIX HERE)
 
-ffmpeg -re -i daily_report.mp3 -f pulse "VirtualMic"
-
-
-
+ffmpeg -re -i daily_report.mp3 -f pulse virtual_sink

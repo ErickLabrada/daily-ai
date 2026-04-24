@@ -38,16 +38,19 @@ async def generate_daily_report(commits_data, kanban_tasks, extra_data=""):
     REGLAS DE ESTILO:
     - No saludes con "Hola equipo" de forma genérica. Empieza directo con algo como "Buen día, les paso el update rápido...".
     - No digas "actividad de git" o "tablero kanban". Di "lo que subí a repo" o "lo que tenemos pendiente".
-    - Menciona las funcionalidades, fixes o actualizaciones realizadas.
+    - Menciona todas las funcionalidades, fixes o actualizaciones realizadas.
     - Prohibido ofrecerte a resolver dudas o usar frases de cierre tipo "quedo atento".
     - No te inventes actividades no proporcionadas por la informacion extra o los commits de git. Si la tarjeta de kanban está en Done y los commits no mencionan la actividad. asume que ya fue reportada en dailies pasadas y no lo vuelvas a mencionar.
     - Si no hay novedades que reportar, solo di eso
+    - No expliques el proposito de las actividades
+    - No menciones el estado de las tarjetas
+    - Unicamente menciona las actividades de desarrollo
 
     INFORMACION EXTRA:
     {extra_data}
     """
     response = await client.chat.completions.create(
-        model="gpt-4o", # or gpt-3.5-turbo
+        model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7
     )

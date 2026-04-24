@@ -64,7 +64,7 @@ async def get_my_tasks(user_id="206"):
                     });
             }
             """,
-            user_id # Passing the Python variable into the browser context
+            user_id
         )
         
         await browser.close()
