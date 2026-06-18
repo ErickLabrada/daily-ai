@@ -5,72 +5,61 @@ from scrapper.kanban.scrapper import get_my_tasks
 from scrapper.kanban.sesion import auto_login
 from llm.llm import generate_daily_report
 from tts.tts import text_to_speech
-import subprocess
 
-async def main():
+
+async def get_data(branches =["dev"], time=1):
     auto_login()
-
     print("Fetching Kanban tasks...")
     kanban_tasks = await get_my_tasks(user_id="206")
-
     print("Fetching Git activity...")
-    raw_commits = await get_commits_since_last_daily("feat/ECOM-EMRQ05HU023", 5)
+    raw_commits = await get_commits_since_last_daily(branches, time)
     
     processed_git_data = []
-    for c in raw_commits:
-        sha = c.get('id')
-        diffs = await get_commit_diff(sha)
-        processed_git_data.append({
-            "title": c.get('title'),
-            "files_touched": diffs
-        })
+    for commit in raw_commits:
+        for c in commit:
+            sha = c.get('id')
+            diffs = await get_commit_diff(sha)
+            processed_git_data.append({
+                "title": c.get('title'),
+                "files_touched": diffs
+            })
+    return kanban_tasks, processed_git_data
+
+
+async def generate_report(kanban_tasks, processed_git_data,extra_data=""):
 
     print("Generating Daily Report...")
-    report = await generate_daily_report(processed_git_data, kanban_tasks)
-    
+    report = await generate_daily_report(processed_git_data, kanban_tasks,extra_data)    
     print("\n--- YOUR DAILY REPORT ---\n")
     print(report)
+    return report 
+    
 
+async def generate_audio(report):
     print("Converting report to speech...")
     audio_file = await text_to_speech(report)
-    print("Preparing Virtual Microphone...")
-    
-    setup_commands = [
-        "pactl load-module module-null-sink sink_name=VirtualMic sink_properties=device.description=Virtual_Microphone_Sink",
-        "pactl load-module module-loopback source=VirtualMic.monitor sink=VirtualMic"
+    return audio_file
+
+
+async def main():
+    extra_data = """
+    """
+
+    branches=[
+        "feat/back-variants",
+        "feat/back-products",
+        "feat/composite",
+        "feat/back-attributes",
     ]
 
-        # Find your headphone sink name first with: pactl list sinks short
-    #headphone_sink = "alsa_output.pci-0000_00_1f.3.analog-stereo" # Example name
+    kanban_tasks, processed_git_data = await get_data(branches, 3)
+    report = await generate_report(kanban_tasks,processed_git_data,extra_data)
 
-    # Add this to your setup_commands
-    #setup_commands.append(f"pactl load-module module-loopback source=VirtualMic.monitor sink={headphone_sink}")
-    
-    module_ids = []
-    for cmd in setup_commands:
-        # Changed 'capture_with' to 'capture_output'
-        result = subprocess.run(cmd.split(), capture_output=True, text=True)
-        if result.returncode == 0:
-            # pactl returns the module ID on success, which we need for cleanup
-            module_ids.append(result.stdout.strip())
-        else:
-            print(f"Warning: Failed to load module. Error: {result.stderr}")
-    try:
-        print(f"Streaming {audio_file} to VirtualMic...")
-        # 2. STREAM: Run ffmpeg
-        # -re: Read input at native frame rate
-        # -f pulse: Output to PulseAudio
-        subprocess.run([
-            "ffmpeg", "-re", "-i", audio_file, 
-            "-f", "pulse", "VirtualMic"
-        ], check=True)
-        
-    except KeyboardInterrupt:
-        print("\nStopping stream...")
-    finally:
-        # 3. TEARDOWN: Remove the virtual modules so they don't clutter your system
-        print("Cleaning up virtual audio devices...")
-        for mid in module_ids:
-            subprocess.run(["pactl", "unload-module", mid])
+    answer = input("Create speech?")
+
+    if answer == "y":
+        audio = await generate_audio(report)
+
 if __name__ == "__main__":
+
     asyncio.run(main())
