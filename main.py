@@ -43,7 +43,6 @@ async def generate_audio(report):
 
 async def main():
     extra_data = """
-    El backend de todos los modulos que se mencionan fueron terminados
     """
 
     branches=[
@@ -53,7 +52,7 @@ async def main():
         "feat/back-attributes",
     ]
 
-    kanban_tasks, processed_git_data = await get_data(branches, 2)
+    kanban_tasks, processed_git_data = await get_data(branches, 3)
     report = await generate_report(kanban_tasks,processed_git_data,extra_data)
 
     answer = input("Create speech?")
